@@ -51,8 +51,8 @@ extension String {
 		return self[startIndex.advancedBy(start) ..< startIndex.advancedBy(end)]
 	}
 
-    public func split(separator: Character, allowEmptySlices: Bool = false) -> [String] {
-		return characters.split(separator, allowEmptySlices: allowEmptySlices).map(String.init)
+    public func split(separator: Character, maxSplit: Int = .max, allowEmptySlices: Bool = false) -> [String] {
+		return characters.split(separator, maxSplit: maxSplit, allowEmptySlices: allowEmptySlices).map(String.init)
     }
 
     public func trim() -> String {
