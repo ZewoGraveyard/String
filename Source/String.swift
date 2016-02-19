@@ -29,8 +29,12 @@
 #endif
 
 extension String {
+    public static func bufferWithSize(size: Int) -> [Int8] {
+        return [Int8](count: size, repeatedValue: 0)
+    }
+
     public init?(pointer: UnsafePointer<Int8>, length: Int) {
-        var buffer: [Int8] = [Int8](count: length + 1, repeatedValue: 0)
+        var buffer = String.bufferWithSize(length + 1)
         strncpy(&buffer, pointer, length)
 
         guard let string = String.fromCString(buffer) else {
