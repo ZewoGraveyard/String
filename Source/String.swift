@@ -130,16 +130,14 @@ public struct CharacterSet: ArrayLiteralConvertible {
 	}
 }
 
-#if !_runtime(_ObjC)
 extension String {
-    public func hasPrefix(prefix: String) -> Bool {
+    public func startsWith(prefix: String) -> Bool {
         return prefix == String(self.characters.prefix(prefix.characters.count))
     }
-    public func hasSuffix(suffix: String) -> Bool {
+    public func endsWith(suffix: String) -> Bool {
         return suffix == String(self.characters.suffix(suffix.characters.count))
     }
 }
-#endif
 
 extension String {
     public init(percentEncoded: String) throws {
