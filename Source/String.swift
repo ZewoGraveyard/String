@@ -22,11 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#if os(Linux)
-	import Glibc
-#else
-	import Darwin.C
-#endif
+import System
 
 extension String {
     public static func bufferWithSize(size: Int) -> [Int8] {
@@ -94,9 +90,58 @@ extension String {
         return self[startIndex ..< startIndex.advancedBy(characters.count - end)]
     }
 
-	func contains(string: String) -> Bool {
-		return strstr(self, string) != nil
+	public func indexOf(string: String) -> String.CharacterView.Index? {
+		return characters.indexOf(string.characters)
 	}
+	
+	public func contains(string: String) -> Bool {
+		return indexOf(string) != nil
+	}
+	
+	public func splitBy(separator: String) -> [String] {
+		let separatorChars = separator.characters
+		guard var index = characters.indexOf(separatorChars) else {
+			return [self]
+		}
+		let separatorCount = separatorChars.count
+		var start = characters.startIndex
+		var array: [String] = []
+		while true {
+			let distance = characters.startIndex.distanceTo(index)
+			let trange = start ..< characters.startIndex.advancedBy(distance + characters.startIndex.distanceTo(start))
+			array.append(String(characters[trange]))
+			start = start.advancedBy(distance + separatorCount)
+			let substr = characters.suffixFrom(start)
+			if let _index = substr.indexOf(separatorChars) {
+				index = _index
+			} else {
+				break
+			}
+		}
+		array.append(String(characters[start ..< characters.endIndex]))
+		return array
+	}
+	
+}
+
+extension String.CharacterView {
+	
+	func indexOf(sequence: String.CharacterView) -> String.CharacterView.Index? {
+		guard let firstChar = sequence.first else {
+			return nil
+		}
+		let seqString = String(sequence)
+		for (i, char) in enumerate() {
+			guard char == firstChar else { continue }
+			let start = startIndex.advancedBy(i)
+			let end = startIndex.advancedBy(i+sequence.count)
+			if String(self[start ..< end]) == seqString {
+				return start
+			}
+		}
+		return nil
+	}
+	
 }
 
 public struct CharacterSet: ArrayLiteralConvertible {
