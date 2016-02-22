@@ -134,8 +134,89 @@ extension String {
     public func startsWith(prefix: String) -> Bool {
         return prefix == String(self.characters.prefix(prefix.characters.count))
     }
+
     public func endsWith(suffix: String) -> Bool {
         return suffix == String(self.characters.suffix(suffix.characters.count))
+    }
+
+    public var dropLastPathComponent: String {
+        let fixedSelf = fixSlashes()
+
+        if fixedSelf == "/" {
+            return fixedSelf
+        }
+
+        switch fixedSelf.startOfLastPathComponent {
+
+        // relative path, single component
+        case fixedSelf.startIndex:
+            return ""
+
+        // absolute path, single component
+        case fixedSelf.startIndex.successor():
+            return "/"
+
+        // all common cases
+        case let startOfLast:
+            return String(fixedSelf.characters.prefixUpTo(startOfLast.predecessor()))
+        }
+    }
+
+    var startOfLastPathComponent: String.CharacterView.Index {
+        precondition(!endsWith("/") && characters.count > 1)
+
+        let characterView = characters
+        let startPos = characterView.startIndex
+        let endPosition = characterView.endIndex
+        var currentPosition = endPosition
+
+        while currentPosition > startPos {
+            let previousPosition = currentPosition.predecessor()
+            if characterView[previousPosition] == "/" {
+                break
+            }
+            currentPosition = previousPosition
+        }
+
+        return currentPosition
+    }
+
+    func fixSlashes(compress compress: Bool = true, stripTrailing: Bool = true) -> String {
+        if self == "/" {
+            return self
+        }
+
+        var result = self
+
+        if compress {
+            result.withMutableCharacters { characterView in
+                let startPosition = characterView.startIndex
+                var endPosition = characterView.endIndex
+                var currentPosition = startPosition
+
+                while currentPosition < endPosition {
+                    if characterView[currentPosition] == "/" {
+                        var afterLastSlashPosition = currentPosition
+                        while afterLastSlashPosition < endPosition && characterView[afterLastSlashPosition] == "/" {
+                            afterLastSlashPosition = afterLastSlashPosition.successor()
+                        }
+                        if afterLastSlashPosition != currentPosition.successor() {
+                            characterView.replaceRange(currentPosition ..< afterLastSlashPosition, with: ["/"])
+                            endPosition = characterView.endIndex
+                        }
+                        currentPosition = afterLastSlashPosition
+                    } else {
+                        currentPosition = currentPosition.successor()
+                    }
+                }
+            }
+        }
+
+        if stripTrailing && result.endsWith("/") {
+            result.removeAtIndex(result.characters.endIndex.predecessor())
+        }
+
+        return result
     }
 }
 
