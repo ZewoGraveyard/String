@@ -122,6 +122,15 @@ extension String {
 		return array
 	}
 	
+	public mutating func replace(string: String, with: String) {
+		let strChars = string.characters
+		let strCount = strChars.count
+		while true {
+			guard let index = characters.indexOf(strChars) else { break }
+			replaceRange(index ..< index.advancedBy(strCount), with: with)
+		}
+	}
+	
 }
 
 extension String.CharacterView {
