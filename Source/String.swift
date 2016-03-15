@@ -25,15 +25,15 @@
 import System
 
 extension String {
-    public static func bufferWithSize(size: Int) -> [Int8] {
-        return [Int8](count: size, repeatedValue: 0)
+    public static func buffer(size size: Int) -> [Int8] {
+        return [Int8](repeating: 0, count: size)
     }
 
     public init?(pointer: UnsafePointer<Int8>, length: Int) {
-        var buffer = String.bufferWithSize(length + 1)
+        var buffer = String.buffer(size: length + 1)
         strncpy(&buffer, pointer, length)
 
-        guard let string = String.fromCString(buffer) else {
+        guard let string = String(validatingUTF8: buffer) else {
             return nil
         }
 
@@ -42,17 +42,17 @@ extension String {
 
 	subscript (i: Int) -> Character? {
 		guard i >= 0 && i < characters.count else { return nil }
-		return self[startIndex.advancedBy(i)]
+        return self[startIndex.advanced(by: i)]
 	}
 
 	subscript (i: Range<Int>) -> String? {
 		let start = i.startIndex, end = i.endIndex
 		guard start >= 0 && start <= characters.count && end >= 0 && end <= characters.count && start < end else { return nil }
-		return self[startIndex.advancedBy(start) ..< startIndex.advancedBy(end)]
+		return self[startIndex.advanced(by: start) ..< startIndex.advanced(by: end)]
 	}
 
-    public func split(separator: Character, maxSplit: Int = .max, allowEmptySlices: Bool = false) -> [String] {
-		return characters.split(separator, maxSplit: maxSplit, allowEmptySlices: allowEmptySlices).map(String.init)
+    public func split(separator: Character, maxSplits: Int = .max, omittingEmptySubsequences: Bool = false) -> [String] {
+        return characters.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences).map(String.init)
     }
 
     public func trim() -> String {
@@ -60,59 +60,59 @@ extension String {
     }
 
     public func trim(characters: CharacterSet) -> String {
-        let string = trimLeft(characters)
-        return string.trimRight(characters)
+        let string = trim(left: characters)
+        return string.trim(right: characters)
     }
 
-    public func trimLeft(characterSet: CharacterSet) -> String {
+    public func trim(left characterSet: CharacterSet) -> String {
         var start = characters.count
 
-        for (index, character) in characters.enumerate() {
+        for (index, character) in characters.enumerated() {
             if !characterSet.contains(character) {
                 start = index
                 break
             }
         }
 
-        return self[startIndex.advancedBy(start) ..< endIndex]
+        return self[startIndex.advanced(by: start) ..< endIndex]
     }
 
-    public func trimRight(characterSet: CharacterSet) -> String {
+    public func trim(right characterSet: CharacterSet) -> String {
         var end = characters.count
 
-        for (index, character) in characters.reverse().enumerate() {
+        for (index, character) in characters.reversed().enumerated() {
             if !characterSet.contains(character) {
                 end = index
                 break
             }
         }
 
-        return self[startIndex ..< startIndex.advancedBy(characters.count - end)]
+        return self[startIndex ..< startIndex.advanced(by: characters.count - end)]
     }
 
-	public func indexOf(string: String) -> String.CharacterView.Index? {
-		return characters.indexOf(string.characters)
+	public func index(of string: String) -> String.CharacterView.Index? {
+        return characters.index(of: string.characters)
 	}
 	
 	public func contains(string: String) -> Bool {
-		return indexOf(string) != nil
+        return index(of: string) != nil
 	}
 	
-	public func splitBy(separator: String) -> [String] {
+	public func split(by separator: String) -> [String] {
 		let separatorChars = separator.characters
-		guard var index = characters.indexOf(separatorChars) else {
+        guard var index = characters.index(of: separatorChars) else {
 			return [self]
 		}
 		let separatorCount = separatorChars.count
 		var start = characters.startIndex
 		var array: [String] = []
 		while true {
-			let distance = characters.startIndex.distanceTo(index)
-			let trange = start ..< characters.startIndex.advancedBy(distance + characters.startIndex.distanceTo(start))
+			let distance = characters.startIndex.distance(to: index)
+            let trange = start ..< characters.startIndex.advanced(by: distance + characters.startIndex.distance(to: start))
 			array.append(String(characters[trange]))
-			start = start.advancedBy(distance + separatorCount)
-			let substr = characters.suffixFrom(start)
-			if let _index = substr.indexOf(separatorChars) {
+			start = start.advanced(by: distance + separatorCount)
+            let substr = characters.suffix(from: start)
+            if let _index = substr.index(of: separatorChars) {
 				index = _index
 			} else {
 				break
@@ -126,8 +126,8 @@ extension String {
 		let strChars = string.characters
 		let strCount = strChars.count
 		while true {
-			guard let index = characters.indexOf(strChars) else { break }
-			replaceRange(index ..< index.advancedBy(strCount), with: with)
+            guard let index = characters.index(of: strChars) else { break }
+			replaceSubrange(index ..< index.advanced(by: strCount), with: with)
 		}
 	}
 	
@@ -135,15 +135,15 @@ extension String {
 
 extension String.CharacterView {
 	
-	func indexOf(sequence: String.CharacterView) -> String.CharacterView.Index? {
+	func index(of sequence: String.CharacterView) -> String.CharacterView.Index? {
 		guard let firstChar = sequence.first else {
 			return nil
 		}
 		let seqString = String(sequence)
-		for (i, char) in enumerate() {
+		for (i, char) in enumerated() {
 			guard char == firstChar else { continue }
-			let start = startIndex.advancedBy(i)
-			let end = startIndex.advancedBy(i+sequence.count)
+			let start = startIndex.advanced(by: i)
+			let end = startIndex.advanced(by: i+sequence.count)
 			if String(self[start ..< end]) == seqString {
 				return start
 			}
@@ -185,11 +185,11 @@ public struct CharacterSet: ArrayLiteralConvertible {
 }
 
 extension String {
-    public func startsWith(prefix: String) -> Bool {
+    public func starts(with prefix: String) -> Bool {
         return prefix == String(self.characters.prefix(prefix.characters.count))
     }
 
-    public func endsWith(suffix: String) -> Bool {
+    public func ends(with suffix: String) -> Bool {
         return suffix == String(self.characters.suffix(suffix.characters.count))
     }
 
@@ -212,12 +212,12 @@ extension String {
 
         // all common cases
         case let startOfLast:
-            return String(fixedSelf.characters.prefixUpTo(startOfLast.predecessor()))
+            return String(fixedSelf.characters.prefix(upTo: startOfLast.predecessor()))
         }
     }
 
     var startOfLastPathComponent: String.CharacterView.Index {
-        precondition(!endsWith("/") && characters.count > 1)
+        precondition(!ends(with: "/") && characters.count > 1)
 
         let characterView = characters
         let startPos = characterView.startIndex
@@ -255,7 +255,7 @@ extension String {
                             afterLastSlashPosition = afterLastSlashPosition.successor()
                         }
                         if afterLastSlashPosition != currentPosition.successor() {
-                            characterView.replaceRange(currentPosition ..< afterLastSlashPosition, with: ["/"])
+                            characterView.replaceSubrange(currentPosition ..< afterLastSlashPosition, with: ["/"])
                             endPosition = characterView.endIndex
                         }
                         currentPosition = afterLastSlashPosition
@@ -266,8 +266,8 @@ extension String {
             }
         }
 
-        if stripTrailing && result.endsWith("/") {
-            result.removeAtIndex(result.characters.endIndex.predecessor())
+        if stripTrailing && result.ends(with: "/") {
+            result.remove(at: result.characters.endIndex.predecessor())
         }
 
         return result
@@ -276,7 +276,7 @@ extension String {
 
 extension String {
     public init(percentEncoded: String) throws {
-        struct Error: ErrorType, CustomStringConvertible {
+        struct Error: ErrorProtocol, CustomStringConvertible {
             let description: String
         }
 
@@ -319,15 +319,15 @@ extension String {
 
         var string = ""
         var decoder = UTF8()
-        var generator = decodedBytes.generate()
+        var iterator = decodedBytes.makeIterator()
         var finished = false
 
         while !finished {
-            let decodingResult = decoder.decode(&generator)
+            let decodingResult = decoder.decode(&iterator)
             switch decodingResult {
-            case .Result(let char): string.append(char)
-            case .EmptyInput: finished = true
-            case .Error:
+            case .scalarValue(let char): string.append(char)
+            case .emptyInput: finished = true
+            case .error:
                 throw Error(description: "UTF-8 decoding failed")
             }
         }
