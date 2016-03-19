@@ -51,7 +51,7 @@ extension String {
 		return self[startIndex.advanced(by: start) ..< startIndex.advanced(by: end)]
 	}
 
-    public func split(separator: Character, maxSplits: Int = .max, omittingEmptySubsequences: Bool = false) -> [String] {
+    public func split(separator: Character, maxSplits: Int = .max, omittingEmptySubsequences: Bool = true) -> [String] {
         return characters.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences).map(String.init)
     }
 
