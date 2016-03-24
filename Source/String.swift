@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import System
+@_exported import OS
 
 extension String {
     public static func buffer(size size: Int) -> [Int8] {
@@ -93,11 +93,11 @@ extension String {
 	public func index(of string: String) -> String.CharacterView.Index? {
         return characters.index(of: string.characters)
 	}
-	
+
 	public func contains(string: String) -> Bool {
         return index(of: string) != nil
 	}
-	
+
 	public func split(by separator: String) -> [String] {
 		let separatorChars = separator.characters
         guard var index = characters.index(of: separatorChars) else {
@@ -121,7 +121,7 @@ extension String {
 		array.append(String(characters[start ..< characters.endIndex]))
 		return array
 	}
-	
+
 	public mutating func replace(string: String, with: String) {
 		let strChars = string.characters
 		let strCount = strChars.count
@@ -130,11 +130,11 @@ extension String {
 			replaceSubrange(index ..< index.advanced(by: strCount), with: with)
 		}
 	}
-	
+
 }
 
 extension String.CharacterView {
-	
+
 	func index(of sequence: String.CharacterView) -> String.CharacterView.Index? {
 		guard let firstChar = sequence.first else {
 			return nil
@@ -150,7 +150,7 @@ extension String.CharacterView {
 		}
 		return nil
 	}
-	
+
 }
 
 public struct CharacterSet: ArrayLiteralConvertible {
