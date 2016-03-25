@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import OS
+@_exported import OperatingSystem
 
 extension String {
     public static func buffer(size size: Int) -> [Int8] {
