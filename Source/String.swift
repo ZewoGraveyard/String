@@ -25,7 +25,7 @@
 @_exported import OperatingSystem
 
 extension String {
-    public static func buffer(size size: Int) -> [Int8] {
+    public static func buffer(size: Int) -> [Int8] {
         return [Int8](repeating: 0, count: size)
     }
 
@@ -56,7 +56,7 @@ extension String {
     }
 
     public func trim() -> String {
-        return trim(CharacterSet.whitespaceAndNewline)
+        return trim(characters: CharacterSet.whitespaceAndNewline)
     }
 
     public func trim(characters: CharacterSet) -> String {
@@ -68,7 +68,7 @@ extension String {
         var start = characters.count
 
         for (index, character) in characters.enumerated() {
-            if !characterSet.contains(character) {
+            if !characterSet.contains(character: character) {
                 start = index
                 break
             }
@@ -81,7 +81,7 @@ extension String {
         var end = characters.count
 
         for (index, character) in characters.reversed().enumerated() {
-            if !characterSet.contains(character) {
+            if !characterSet.contains(character: character) {
                 end = index
                 break
             }
@@ -94,7 +94,7 @@ extension String {
         return characters.index(of: string.characters)
 	}
 
-	public func contains(string: String) -> Bool {
+	public func contains(_ string: String) -> Bool {
         return index(of: string) != nil
 	}
 
@@ -235,7 +235,7 @@ extension String {
         return currentPosition
     }
 
-    func fixSlashes(compress compress: Bool = true, stripTrailing: Bool = true) -> String {
+    func fixSlashes(compress: Bool = true, stripTrailing: Bool = true) -> String {
         if self == "/" {
             return self
         }
