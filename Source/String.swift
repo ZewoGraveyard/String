@@ -60,11 +60,11 @@ extension String {
     }
 
     public func trim(_ characters: CharacterSet) -> String {
-        let string = trim(left: characters)
-        return string.trim(right: characters)
+        let string = trimLeft(characters)
+        return string.trimRight(characters)
     }
 
-    public func trim(left characterSet: CharacterSet) -> String {
+    public func trimLeft(_ characterSet: CharacterSet) -> String {
         var start = characters.count
 
         for (index, character) in characters.enumerated() {
@@ -77,7 +77,7 @@ extension String {
         return self[startIndex.advanced(by: start) ..< endIndex]
     }
 
-    public func trim(right characterSet: CharacterSet) -> String {
+    public func trimRight(_ characterSet: CharacterSet) -> String {
         var end = characters.count
 
         for (index, character) in characters.reversed().enumerated() {
