@@ -98,7 +98,7 @@ extension String {
         return index(of: string) != nil
 	}
 
-	public func split(by separator: String) -> [String] {
+	public func split(byString separator: String) -> [String] {
 		let separatorChars = separator.characters
         guard var index = characters.index(of: separatorChars) else {
 			return [self]
