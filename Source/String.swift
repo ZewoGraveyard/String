@@ -56,10 +56,10 @@ extension String {
     }
 
     public func trim() -> String {
-        return trim(characters: CharacterSet.whitespaceAndNewline)
+        return trim(CharacterSet.whitespaceAndNewline)
     }
 
-    public func trim(characters: CharacterSet) -> String {
+    public func trim(_ characters: CharacterSet) -> String {
         let string = trim(left: characters)
         return string.trim(right: characters)
     }
