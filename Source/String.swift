@@ -22,7 +22,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import OperatingSystem
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin.C
+#endif
 
 extension String {
     public static func buffer(size: Int) -> [Int8] {
