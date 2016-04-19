@@ -22,10 +22,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-@_exported import OperatingSystem
+#if os(Linux)
+    import Glibc
+#else
+    import Darwin.C
+#endif
 
 extension String {
-    public static func buffer(size size: Int) -> [Int8] {
+    public static func buffer(size: Int) -> [Int8] {
         return [Int8](repeating: 0, count: size)
     }
 
@@ -59,16 +63,16 @@ extension String {
         return trim(CharacterSet.whitespaceAndNewline)
     }
 
-    public func trim(characters: CharacterSet) -> String {
-        let string = trim(left: characters)
-        return string.trim(right: characters)
+    public func trim(_ characters: CharacterSet) -> String {
+        let string = trimLeft(characters)
+        return string.trimRight(characters)
     }
 
-    public func trim(left characterSet: CharacterSet) -> String {
+    public func trimLeft(_ characterSet: CharacterSet) -> String {
         var start = characters.count
 
         for (index, character) in characters.enumerated() {
-            if !characterSet.contains(character) {
+            if !characterSet.contains(character: character) {
                 start = index
                 break
             }
@@ -77,11 +81,11 @@ extension String {
         return self[startIndex.advanced(by: start) ..< endIndex]
     }
 
-    public func trim(right characterSet: CharacterSet) -> String {
+    public func trimRight(_ characterSet: CharacterSet) -> String {
         var end = characters.count
 
         for (index, character) in characters.reversed().enumerated() {
-            if !characterSet.contains(character) {
+            if !characterSet.contains(character: character) {
                 end = index
                 break
             }
@@ -94,11 +98,11 @@ extension String {
         return characters.index(of: string.characters)
 	}
 
-	public func contains(string: String) -> Bool {
+	public func contains(_ string: String) -> Bool {
         return index(of: string) != nil
 	}
 
-	public func split(by separator: String) -> [String] {
+	public func split(byString separator: String) -> [String] {
 		let separatorChars = separator.characters
         guard var index = characters.index(of: separatorChars) else {
 			return [self]
@@ -235,7 +239,7 @@ extension String {
         return currentPosition
     }
 
-    func fixSlashes(compress compress: Bool = true, stripTrailing: Bool = true) -> String {
+    func fixSlashes(compress: Bool = true, stripTrailing: Bool = true) -> String {
         if self == "/" {
             return self
         }
