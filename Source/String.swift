@@ -64,8 +64,7 @@ extension String {
     }
 
     public func trim(_ characters: CharacterSet) -> String {
-        let string = trimLeft(characters)
-        return string.trimRight(characters)
+        return trimLeft(characters).trimRight(characters)
     }
 
     public func trimLeft(_ characterSet: CharacterSet) -> String {

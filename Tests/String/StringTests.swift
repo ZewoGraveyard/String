@@ -5,6 +5,13 @@ class StringTests: XCTestCase {
     func testReality() {
         XCTAssert(2 + 2 == 4, "Something is severely wrong here.")
     }
+
+    func testTrim() {
+        XCTAssertEqual(" left space".trim(), "left space")
+        XCTAssertEqual("right space ".trim(), "right space")
+        XCTAssertEqual("  left and right ".trim(), "left and right")
+        XCTAssertEqual(" ,multiple characters ".trim([" ", ","]), "multiple characters")
+    }
 }
 
 extension StringTests {
