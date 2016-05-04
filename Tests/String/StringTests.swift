@@ -22,6 +22,7 @@ extension StringTests {
     static var allTests: [(String, StringTests -> () throws -> Void)] {
         return [
            ("testReality", testReality),
+           ("testTrim", testTrim)
         ]
     }
 }
