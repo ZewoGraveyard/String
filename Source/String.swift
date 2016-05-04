@@ -46,13 +46,13 @@ extension String {
 
 	subscript (i: Int) -> Character? {
 		guard i >= 0 && i < characters.count else { return nil }
-        return self[startIndex.advanced(by: i)]
+        return self[index(startIndex, offsetBy: i)]
 	}
 
 	subscript (i: Range<Int>) -> String? {
-		let start = i.startIndex, end = i.endIndex
-		guard start >= 0 && start <= characters.count && end >= 0 && end <= characters.count && start < end else { return nil }
-		return self[startIndex.advanced(by: start) ..< startIndex.advanced(by: end)]
+		let verifiedRange = i.clamped(to: 0 ..< characters.count)
+		guard i == verifiedRange else { return nil }
+		return self[i]
 	}
 
     public func split(separator: Character, maxSplits: Int = .max, omittingEmptySubsequences: Bool = true) -> [String] {
@@ -68,7 +68,7 @@ extension String {
     }
 
     public func trimLeft(_ characterSet: CharacterSet) -> String {
-        var start = characters.count
+        var start = 0
 
         for (index, character) in characters.enumerated() {
             if !characterSet.contains(character: character) {
@@ -77,11 +77,11 @@ extension String {
             }
         }
 
-        return self[startIndex.advanced(by: start) ..< endIndex]
+        return self[index(startIndex, offsetBy: start) ..< endIndex]
     }
 
     public func trimRight(_ characterSet: CharacterSet) -> String {
-        var end = characters.count
+        var end = 0
 
         for (index, character) in characters.reversed().enumerated() {
             if !characterSet.contains(character: character) {
@@ -90,7 +90,7 @@ extension String {
             }
         }
 
-        return self[startIndex ..< startIndex.advanced(by: characters.count - end)]
+        return self[startIndex ..< index(endIndex, offsetBy: -end)]
     }
 
 	public func index(of string: String) -> String.CharacterView.Index? {
@@ -110,10 +110,11 @@ extension String {
 		var start = characters.startIndex
 		var array: [String] = []
 		while true {
-			let distance = characters.startIndex.distance(to: index)
-            let trange = start ..< characters.startIndex.advanced(by: distance + characters.startIndex.distance(to: start))
+			let distance = characters.distance(from: characters.startIndex, to: index)
+            let offset = distance + characters.distance(from: startIndex, to: start)
+            let trange = start ..< characters.index(startIndex, offsetBy: offset)
 			array.append(String(characters[trange]))
-			start = start.advanced(by: distance + separatorCount)
+			start = characters.index(start, offsetBy: distance + separatorCount)
             let substr = characters.suffix(from: start)
             if let _index = substr.index(of: separatorChars) {
 				index = _index
@@ -130,7 +131,7 @@ extension String {
 		let strCount = strChars.count
 		while true {
             guard let index = characters.index(of: strChars) else { break }
-			replaceSubrange(index ..< index.advanced(by: strCount), with: with)
+			replaceSubrange(index ..< self.index(index, offsetBy: strCount), with: with)
 		}
 	}
 
@@ -145,8 +146,8 @@ extension String.CharacterView {
 		let seqString = String(sequence)
 		for (i, char) in enumerated() {
 			guard char == firstChar else { continue }
-			let start = startIndex.advanced(by: i)
-			let end = startIndex.advanced(by: i+sequence.count)
+			let start = index(startIndex, offsetBy: i)
+			let end = index(startIndex, offsetBy: i+sequence.count)
 			if String(self[start ..< end]) == seqString {
 				return start
 			}
@@ -210,12 +211,12 @@ extension String {
             return ""
 
         // absolute path, single component
-        case fixedSelf.startIndex.successor():
+        case fixedSelf.index(after: startIndex):
             return "/"
 
         // all common cases
         case let startOfLast:
-            return String(fixedSelf.characters.prefix(upTo: startOfLast.predecessor()))
+            return String(fixedSelf.characters.prefix(upTo: fixedSelf.index(before: startOfLast)))
         }
     }
 
@@ -228,7 +229,7 @@ extension String {
         var currentPosition = endPosition
 
         while currentPosition > startPos {
-            let previousPosition = currentPosition.predecessor()
+            let previousPosition = characterView.index(before: currentPosition)
             if characterView[previousPosition] == "/" {
                 break
             }
@@ -255,22 +256,22 @@ extension String {
                     if characterView[currentPosition] == "/" {
                         var afterLastSlashPosition = currentPosition
                         while afterLastSlashPosition < endPosition && characterView[afterLastSlashPosition] == "/" {
-                            afterLastSlashPosition = afterLastSlashPosition.successor()
+                            afterLastSlashPosition = characterView.index(after: afterLastSlashPosition)
                         }
-                        if afterLastSlashPosition != currentPosition.successor() {
+                        if afterLastSlashPosition != characterView.index(after: currentPosition) {
                             characterView.replaceSubrange(currentPosition ..< afterLastSlashPosition, with: ["/"])
                             endPosition = characterView.endIndex
                         }
                         currentPosition = afterLastSlashPosition
                     } else {
-                        currentPosition = currentPosition.successor()
+                        currentPosition = characterView.index(after: currentPosition)
                     }
                 }
             }
         }
 
         if stripTrailing && result.ends(with: "/") {
-            result.remove(at: result.characters.endIndex.predecessor())
+            result.remove(at: result.characters.index(before: result.characters.endIndex))
         }
 
         return result
