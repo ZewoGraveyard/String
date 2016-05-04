@@ -8,9 +8,13 @@ class StringTests: XCTestCase {
 
     func testTrim() {
         XCTAssertEqual(" left space".trim(), "left space")
+        XCTAssertEqual("left space".trim(), "left space")
         XCTAssertEqual("right space ".trim(), "right space")
+        XCTAssertEqual("right space".trim(), "right space")
         XCTAssertEqual("  left and right ".trim(), "left and right")
+        XCTAssertEqual("left and right".trim(), "left and right")
         XCTAssertEqual(" ,multiple characters ".trim([" ", ","]), "multiple characters")
+        XCTAssertEqual("multiple characters".trim([" ", ","]), "multiple characters")
     }
 }
 
