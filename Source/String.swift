@@ -134,11 +134,9 @@ extension String {
 			replaceSubrange(index ..< self.index(index, offsetBy: strCount), with: with)
 		}
 	}
-
 }
 
 extension String.CharacterView {
-
 	func index(of sequence: String.CharacterView) -> String.CharacterView.Index? {
 		guard let firstChar = sequence.first else {
 			return nil
@@ -154,7 +152,10 @@ extension String.CharacterView {
 		}
 		return nil
 	}
+}
 
+public enum CharacterSetError: ErrorProtocol {
+    case characterIsNotUTF8
 }
 
 public struct CharacterSet: ArrayLiteralConvertible {
@@ -165,6 +166,30 @@ public struct CharacterSet: ArrayLiteralConvertible {
 	public static var digits: CharacterSet {
 		return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 	}
+
+    public static var uriQueryAllowed: CharacterSet {
+        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+    }
+
+    public static var uriFragmentAllowed: CharacterSet {
+        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+    }
+
+    public static var uriPathAllowed: CharacterSet {
+        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", "=", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+    }
+
+    public static var uriHostAllowed: CharacterSet {
+        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "]", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+    }
+
+    public static var uriPasswordAllowed: CharacterSet {
+        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+    }
+
+    public static var uriUserAllowed: CharacterSet {
+        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+    }
 
 	private let characters: Set<Character>
 	private let isInverted: Bool
@@ -186,6 +211,18 @@ public struct CharacterSet: ArrayLiteralConvertible {
 		let contains = characters.contains(character)
 		return isInverted ? !contains : contains
 	}
+
+    public func utf8() throws -> Set<UTF8.CodeUnit> {
+        var codeUnits: Set<UTF8.CodeUnit> = []
+        for character in characters {
+            let utf8 = String(character).utf8
+            if utf8.count != 1 {
+                throw CharacterSetError.characterIsNotUTF8
+            }
+            codeUnits.insert(utf8[utf8.startIndex])
+        }
+        return codeUnits
+    }
 }
 
 extension String {
@@ -302,8 +339,6 @@ extension String {
 
                 let hexString = "\(unicodeA)\(unicodeB)"
 
-
-
                 guard let character = Int(hexString, radix: 16) else {
                     throw Error(description: "Invalid string")
                 }
@@ -337,5 +372,30 @@ extension String {
         }
 
         self.init(string)
+    }
+}
+
+extension String {
+    public func percentEncoded(allowing allowed: CharacterSet) throws -> String {
+        var string = ""
+        let allowed = try allowed.utf8()
+
+        for codeUnit in self.utf8 {
+            if allowed.contains(codeUnit) {
+                string.append(UnicodeScalar(codeUnit))
+            } else {
+                string.append("%")
+                string.append(codeUnit.hexadecimal())
+            }
+        }
+
+        return string
+    }
+}
+
+extension UInt8 {
+    public func hexadecimal(uppercased: Bool = true) -> String {
+        let hexadecimal =  String(self, radix: 16)
+        return (self < 16 ? "0" : "") + (uppercased ? hexadecimal.uppercased() : hexadecimal)
     }
 }
