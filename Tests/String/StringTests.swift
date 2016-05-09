@@ -29,6 +29,9 @@ class StringTests: XCTestCase {
         XCTAssertEqual(string, "Sometimes we need a test string to test replacement on.")
         string.replace(string: "Gobeldigook", with: "HELLO!")
         XCTAssertEqual(string, "Sometimes we need a test string to test replacement on.")
+        string = "short"
+        string.replace(string: "longnonexistentstring", with: "replacement string")
+        XCTAssertEqual(string, "short")
     }
 
     func testURIQueryPercentEncoding() {
