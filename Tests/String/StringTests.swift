@@ -15,6 +15,21 @@ class StringTests: XCTestCase {
         value = 255
         XCTAssertEqual(value.hexadecimal(uppercased: false), "ff")
     }
+    
+    func testIndex() {
+        let string = "A test string."
+        XCTAssertEqual(string.index(of: "A"), string.startIndex)
+        XCTAssertEqual(string.index(of: "test"), string.characters.index(of: "t"))
+        XCTAssertEqual(string.index(of: "A test string."), string.characters.index(of: "A"))
+    }
+    
+    func testReplace() {
+        var string = "A sample string to test replacement on."
+        string.replace(string: "A sample string", with: "Sometimes we need a test string")
+        XCTAssertEqual(string, "Sometimes we need a test string to test replacement on.")
+        string.replace(string: "Gobeldigook", with: "HELLO!")
+        XCTAssertEqual(string, "Sometimes we need a test string to test replacement on.")
+    }
 
     func testURIQueryPercentEncoding() {
         XCTAssertEqual(try "abc".percentEncoded(allowing: .uriQueryAllowed), "abc")
@@ -40,7 +55,9 @@ extension StringTests {
         return [
            ("testHexadecimal", testHexadecimal),
            ("testURIQueryPercentEncoding", testURIQueryPercentEncoding),
-           ("testTrim", testTrim)
+           ("testTrim", testTrim),
+           ("testIndex", testIndex),
+           ("testReplace", testReplace)
         ]
     }
 }

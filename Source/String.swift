@@ -137,21 +137,22 @@ extension String {
 }
 
 extension String.CharacterView {
-	func index(of sequence: String.CharacterView) -> String.CharacterView.Index? {
-		guard let firstChar = sequence.first else {
-			return nil
-		}
-		let seqString = String(sequence)
-		for (i, char) in enumerated() {
-			guard char == firstChar else { continue }
-			let start = index(startIndex, offsetBy: i)
-			let end = index(startIndex, offsetBy: i+sequence.count)
-			if String(self[start ..< end]) == seqString {
-				return start
-			}
-		}
-		return nil
-	}
+    func index(of sequence: String.CharacterView) -> String.CharacterView.Index? {
+        let seqString = String(sequence)
+        for (i, _) in enumerated() {
+            // Protect against range overflow errors
+            if i + sequence.count > count {
+                break
+            } else {
+                let start = index(startIndex, offsetBy: i)
+                let end = index(startIndex, offsetBy: i+sequence.count)
+                if String(self[start ..< end]) == seqString {
+                    return start
+                }
+            }
+        }
+        return nil
+    }
 }
 
 public enum CharacterSetError: ErrorProtocol {
