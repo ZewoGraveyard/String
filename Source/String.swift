@@ -167,33 +167,45 @@ public struct CharacterSet: ArrayLiteralConvertible {
 	public static var digits: CharacterSet {
 		return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 	}
+	
+	public static var lowercase: CharacterSet {
+		return ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+	}
+	
+	public static var uppercase: CharacterSet {
+		return ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+	}
+	
+	public static var letters: CharacterSet {
+		return lowercase + uppercase
+	}
 
     public static var uriQueryAllowed: CharacterSet {
-        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "_", "~"]
     }
 
     public static var uriFragmentAllowed: CharacterSet {
-        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "_", "~"]
     }
 
     public static var uriPathAllowed: CharacterSet {
-        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", "=", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", "=", "@", "_", "~"]
     }
 
     public static var uriHostAllowed: CharacterSet {
-        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "]", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", ":", ";", "=", "[", "]", "_", "~"]
     }
 
     public static var uriPasswordAllowed: CharacterSet {
-        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", ";", "=", "_", "~"]
     }
 
     public static var uriUserAllowed: CharacterSet {
-        return ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
+        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", ";", "=", "_", "~"]
     }
 
-	private let characters: Set<Character>
-	private let isInverted: Bool
+	public let characters: Set<Character>
+	public var isInverted: Bool
 
 	public var inverted: CharacterSet {
 		return CharacterSet(characters: characters, inverted: !isInverted)
@@ -224,6 +236,10 @@ public struct CharacterSet: ArrayLiteralConvertible {
         }
         return codeUnits
     }
+}
+
+public func +(lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
+	return CharacterSet(characters: lhs.characters.union(rhs.characters))
 }
 
 extension String {
