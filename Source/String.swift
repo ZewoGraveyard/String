@@ -155,11 +155,11 @@ extension String.CharacterView {
     }
 }
 
-public enum CharacterSetError: ErrorProtocol {
+public enum CharacterSetError: Error {
     case characterIsNotUTF8
 }
 
-public struct CharacterSet: ArrayLiteralConvertible {
+public struct CharacterSet: ExpressibleByArrayLiteral {
 	public static var whitespaceAndNewline: CharacterSet {
 		return [" ", "\t", "\r", "\n"]
 	}
@@ -334,7 +334,7 @@ extension String {
 
 extension String {
     public init(percentEncoded: String) throws {
-        struct Error: ErrorProtocol, CustomStringConvertible {
+        struct StringError: Error, CustomStringConvertible {
             let description: String
         }
 
@@ -357,7 +357,7 @@ extension String {
                 let hexString = "\(unicodeA)\(unicodeB)"
 
                 guard let character = Int(hexString, radix: 16) else {
-                    throw Error(description: "Invalid string")
+                    throw StringError(description: "Invalid string")
                 }
 
                 decodedBytes.append(UInt8(character))
@@ -384,7 +384,7 @@ extension String {
             case .scalarValue(let char): string.append(char)
             case .emptyInput: finished = true
             case .error:
-                throw Error(description: "UTF-8 decoding failed")
+                throw StringError(description: "UTF-8 decoding failed")
             }
         }
 

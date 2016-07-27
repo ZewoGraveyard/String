@@ -54,7 +54,7 @@ class StringTests: XCTestCase {
 }
 
 extension StringTests {
-    static var allTests: [(String, StringTests -> () throws -> Void)] {
+    static var allTests: [(String, (StringTests) -> () throws -> Void)] {
         return [
            ("testHexadecimal", testHexadecimal),
            ("testURIQueryPercentEncoding", testURIQueryPercentEncoding),
