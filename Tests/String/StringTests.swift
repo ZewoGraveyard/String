@@ -39,6 +39,7 @@ class StringTests: XCTestCase {
         XCTAssertEqual(try "joão".percentEncoded(allowing: .uriQueryAllowed), "jo%C3%A3o")
         XCTAssertEqual(try "💩".percentEncoded(allowing: .uriQueryAllowed), "%F0%9F%92%A9")
         XCTAssertEqual(try "foo bar".percentEncoded(allowing: .uriQueryAllowed), "foo%20bar")
+        XCTAssertEqual(try "foo\nbar".percentEncoded(allowing: .uriQueryAllowed), "foo%0Abar")
     }
 
     func testTrim() {
