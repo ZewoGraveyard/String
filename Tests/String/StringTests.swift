@@ -95,6 +95,7 @@ extension StringTests {
     static var allTests: [(String, (StringTests) -> () throws -> Void)] {
         return [
            ("testHexadecimal", testHexadecimal),
+           ("testURIComponentPercentEncoding", testURIComponentPercentEncoding),
            ("testURIQueryPercentEncoding", testURIQueryPercentEncoding),
            ("testTrim", testTrim),
            ("testIndex", testIndex),
