@@ -167,18 +167,26 @@ public struct CharacterSet: ExpressibleByArrayLiteral {
 	public static var digits: CharacterSet {
 		return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 	}
-	
+
 	public static var lowercase: CharacterSet {
 		return ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 	}
-	
+
 	public static var uppercase: CharacterSet {
 		return ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 	}
-	
+
 	public static var letters: CharacterSet {
 		return lowercase + uppercase
 	}
+
+    /// Based on [RFC3986 2.3 Unreserved Characters][1]
+    ///
+    /// [1]: https://tools.ietf.org/html/rfc3986#section-2.3
+
+    public static var uriComponentAllowed: CharacterSet {
+        return digits + letters + ["-", ".", "_", "~"]
+    }
 
     public static var uriQueryAllowed: CharacterSet {
         return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "_", "~"]
