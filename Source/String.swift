@@ -28,46 +28,45 @@
     import Darwin.C
 #endif
 
+public enum StringError : Error {
+    case invalidString
+    case utf8EncodingFailed
+}
+
 extension String {
-    public static func buffer(size: Int) -> [Int8] {
-        return [Int8](repeating: 0, count: size)
+    // Todo: Use Swift's standard library implemenation
+    // https://github.com/apple/swift/blob/7b2f91aad83a46b33c56147c224afbde8a670376/stdlib/public/core/CString.swift#L46
+    // Alternative:
+    //    cString.withUnsafeBufferPointer { ptr in
+    //        var string = String()
+    //        string.reserveCapacity(ptr.count)
+    //        for i in 0..<ptr.count {
+    //            string.append(UnicodeScalar((ptr.baseAddress! + i).pointee))
+    //        }
+    //    }
+    public init(cString: UnsafePointer<Int8>, length: Int) {
+        var buffer = [Int8](repeating: 0, count: length + 1)
+        strncpy(&buffer, cString, length)
+        self.init(String(cString: buffer))!
     }
 
-    public init?(pointer: UnsafePointer<Int8>, length: Int) {
-        var buffer = String.buffer(size: length + 1)
-        strncpy(&buffer, pointer, length)
-
-        guard let string = String(validatingUTF8: buffer) else {
-            return nil
-        }
-
-        self.init(string)
+    public func capitalizedWord() -> String {
+        return String(self.characters.prefix(1)).uppercased() + String(self.characters.dropFirst()).lowercased()
     }
-
-	subscript (i: Int) -> Character? {
-		guard i >= 0 && i < characters.count else { return nil }
-        return self[index(startIndex, offsetBy: i)]
-	}
-
-	subscript (i: Range<Int>) -> String? {
-		let verifiedRange = i.clamped(to: 0 ..< characters.count)
-		guard i == verifiedRange else { return nil }
-		return self[i]
-	}
 
     public func split(separator: Character, maxSplits: Int = .max, omittingEmptySubsequences: Bool = true) -> [String] {
         return characters.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences).map(String.init)
     }
 
     public func trim() -> String {
-        return trim(CharacterSet.whitespaceAndNewline)
+        return trim(Characters.whitespaceAndNewline)
     }
 
-    public func trim(_ characters: CharacterSet) -> String {
+    public func trim(_ characters: Characters) -> String {
         return trimLeft(characters).trimRight(characters)
     }
 
-    public func trimLeft(_ characterSet: CharacterSet) -> String {
+    public func trimLeft(_ characterSet: Characters) -> String {
         var start = 0
 
         for (index, character) in characters.enumerated() {
@@ -80,7 +79,7 @@ extension String {
         return self[index(startIndex, offsetBy: start) ..< endIndex]
     }
 
-    public func trimRight(_ characterSet: CharacterSet) -> String {
+    public func trimRight(_ characterSet: Characters) -> String {
         var end = 0
 
         for (index, character) in characters.reversed().enumerated() {
@@ -97,44 +96,22 @@ extension String {
         return characters.index(of: string.characters)
 	}
 
-	public func contains(_ string: String) -> Bool {
-        return index(of: string) != nil
-	}
-
-	public func split(byString separator: String) -> [String] {
-		let separatorChars = separator.characters
-        guard var index = characters.index(of: separatorChars) else {
-			return [self]
-		}
-		let separatorCount = separatorChars.count
-		var start = characters.startIndex
-		var array: [String] = []
-		while true {
-			let distance = characters.distance(from: characters.startIndex, to: index)
-            let offset = distance + characters.distance(from: startIndex, to: start)
-            let trange = start ..< characters.index(startIndex, offsetBy: offset)
-			array.append(String(characters[trange]))
-			start = characters.index(start, offsetBy: distance + separatorCount)
-            let substr = characters.suffix(from: start)
-            if let _index = substr.index(of: separatorChars) {
-				index = _index
-			} else {
-				break
-			}
-		}
-		array.append(String(characters[start ..< characters.endIndex]))
-		return array
-	}
-
-	public mutating func replace(string: String, with: String) {
-		let strChars = string.characters
-		let strCount = strChars.count
-		while true {
-            guard let index = characters.index(of: strChars) else { break }
-			replaceSubrange(index ..< self.index(index, offsetBy: strCount), with: with)
-		}
+	public func contains(substring: String) -> Bool {
+        return index(of: substring) != nil
 	}
 }
+
+
+extension String {
+    public func has(prefix: String) -> Bool {
+        return prefix == String(self.characters.prefix(prefix.characters.count))
+    }
+
+    public func has(suffix: String) -> Bool {
+        return suffix == String(self.characters.suffix(suffix.characters.count))
+    }
+}
+
 
 extension String.CharacterView {
     func index(of sequence: String.CharacterView) -> String.CharacterView.Index? {
@@ -155,73 +132,34 @@ extension String.CharacterView {
     }
 }
 
-public enum CharacterSetError: Error {
+public enum CharactersError : Error {
     case characterIsNotUTF8
 }
 
-public struct CharacterSet: ExpressibleByArrayLiteral {
-	public static var whitespaceAndNewline: CharacterSet {
-		return [" ", "\t", "\r", "\n"]
-	}
+public struct Characters : ExpressibleByArrayLiteral {
+	public static let whitespaceAndNewline: Characters = [" ", "\t", "\r", "\n"]
 
-	public static var digits: CharacterSet {
-		return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-	}
+	public static let digits: Characters = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
-	public static var lowercase: CharacterSet {
-		return ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-	}
+    public static let uriQueryAllowed: Characters = ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"
+    ]
 
-	public static var uppercase: CharacterSet {
-		return ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-	}
 
-	public static var letters: CharacterSet {
-		return lowercase + uppercase
-	}
+    public static let uriFragmentAllowed: Characters = ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"
+    ]
 
-    /// Based on [RFC3986 2.3 Unreserved Characters][1]
-    ///
-    /// [1]: https://tools.ietf.org/html/rfc3986#section-2.3
+    public static let uriPathAllowed: Characters = ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", "=", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
 
-    public static var uriComponentAllowed: CharacterSet {
-        return digits + letters + ["-", ".", "_", "~"]
-    }
+    public static let uriHostAllowed: Characters = ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "[", "]", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
 
-    public static var uriQueryAllowed: CharacterSet {
-        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "_", "~"]
-    }
+    public static let uriPasswordAllowed: Characters = ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
 
-    public static var uriFragmentAllowed: CharacterSet {
-        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "=", "?", "@", "_", "~"]
-    }
+    public static let uriUserAllowed: Characters = ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ";", "=", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "~"]
 
-    public static var uriPathAllowed: CharacterSet {
-        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", "/", ":", "=", "@", "_", "~"]
-    }
+	private let characters: Set<Character>
 
-    public static var uriHostAllowed: CharacterSet {
-        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", ":", ";", "=", "[", "]", "_", "~"]
-    }
-
-    public static var uriPasswordAllowed: CharacterSet {
-        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", ";", "=", "_", "~"]
-    }
-
-    public static var uriUserAllowed: CharacterSet {
-        return digits + letters + ["!", "$", "&", "\'", "(", ")", "*", "+", ",", "-", ".", ";", "=", "_", "~"]
-    }
-
-	public let characters: Set<Character>
-	public var isInverted: Bool
-
-	public var inverted: CharacterSet {
-		return CharacterSet(characters: characters, inverted: !isInverted)
-	}
-
-	public init(characters: Set<Character>, inverted: Bool = false) {
+	public init(characters: Set<Character>) {
 		self.characters = characters
-		self.isInverted = inverted
 	}
 
 	public init(arrayLiteral elements: Character...) {
@@ -229,185 +167,139 @@ public struct CharacterSet: ExpressibleByArrayLiteral {
 	}
 
 	public func contains(character: Character) -> Bool {
-		let contains = characters.contains(character)
-		return isInverted ? !contains : contains
+		return characters.contains(character)
 	}
 
-    public func utf8() throws -> Set<UTF8.CodeUnit> {
+    public func utf8() -> Set<UTF8.CodeUnit> {
         var codeUnits: Set<UTF8.CodeUnit> = []
         for character in characters {
             let utf8 = String(character).utf8
-            if utf8.count != 1 {
-                throw CharacterSetError.characterIsNotUTF8
-            }
             codeUnits.insert(utf8[utf8.startIndex])
         }
         return codeUnits
     }
 }
 
-public func +(lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
-	return CharacterSet(characters: lhs.characters.union(rhs.characters))
-}
-
-extension String {
-    public func starts(with prefix: String) -> Bool {
-        return prefix == String(self.characters.prefix(prefix.characters.count))
-    }
-
-    public func ends(with suffix: String) -> Bool {
-        return suffix == String(self.characters.suffix(suffix.characters.count))
-    }
-
-    public var dropLastPathComponent: String {
-        let fixedSelf = fixSlashes()
-
-        if fixedSelf == "/" {
-            return fixedSelf
+extension String.CharacterView {
+    func character(at i: Index, offsetBy offset: Int) -> Character? {
+        var i = i
+        if !formIndex(&i, offsetBy: offset, limitedBy: index(before: self.endIndex)) {
+            return nil
         }
-
-        switch fixedSelf.startOfLastPathComponent {
-
-        // relative path, single component
-        case fixedSelf.startIndex:
-            return ""
-
-        // absolute path, single component
-        case fixedSelf.index(after: startIndex):
-            return "/"
-
-        // all common cases
-        case let startOfLast:
-            return String(fixedSelf.characters.prefix(upTo: fixedSelf.index(before: startOfLast)))
-        }
-    }
-
-    var startOfLastPathComponent: String.CharacterView.Index {
-        precondition(!ends(with: "/") && characters.count > 1)
-
-        let characterView = characters
-        let startPos = characterView.startIndex
-        let endPosition = characterView.endIndex
-        var currentPosition = endPosition
-
-        while currentPosition > startPos {
-            let previousPosition = characterView.index(before: currentPosition)
-            if characterView[previousPosition] == "/" {
-                break
-            }
-            currentPosition = previousPosition
-        }
-
-        return currentPosition
-    }
-
-    func fixSlashes(compress: Bool = true, stripTrailing: Bool = true) -> String {
-        if self == "/" {
-            return self
-        }
-
-        var result = self
-
-        if compress {
-            result.withMutableCharacters { characterView in
-                let startPosition = characterView.startIndex
-                var endPosition = characterView.endIndex
-                var currentPosition = startPosition
-
-                while currentPosition < endPosition {
-                    if characterView[currentPosition] == "/" {
-                        var afterLastSlashPosition = currentPosition
-                        while afterLastSlashPosition < endPosition && characterView[afterLastSlashPosition] == "/" {
-                            afterLastSlashPosition = characterView.index(after: afterLastSlashPosition)
-                        }
-                        if afterLastSlashPosition != characterView.index(after: currentPosition) {
-                            characterView.replaceSubrange(currentPosition ..< afterLastSlashPosition, with: ["/"])
-                            endPosition = characterView.endIndex
-                        }
-                        currentPosition = afterLastSlashPosition
-                    } else {
-                        currentPosition = characterView.index(after: currentPosition)
-                    }
-                }
-            }
-        }
-
-        if stripTrailing && result.ends(with: "/") {
-            result.remove(at: result.characters.index(before: result.characters.endIndex))
-        }
-
-        return result
+        return self[i]
     }
 }
 
 extension String {
     public init(percentEncoded: String) throws {
-        struct StringError: Error, CustomStringConvertible {
-            let description: String
-        }
+        let characters = percentEncoded.characters
+        var decoded = ""
+        var index = characters.startIndex
 
-        let spaceCharacter: UInt8 = 32
-        let percentCharacter: UInt8 = 37
-        let plusCharacter: UInt8 = 43
+        while index < characters.endIndex {
+            let character = characters[index]
 
-        var encodedBytes: [UInt8] = [] + percentEncoded.utf8
-        var decodedBytes: [UInt8] = []
-        var i = 0
+            switch character {
+            case "%":
+                var encoded: [UInt8] = []
 
-        while i < encodedBytes.count {
-            let currentCharacter = encodedBytes[i]
+                while true {
+                    guard let unicodeA = characters.character(at: index, offsetBy: 1) else {
+                        throw StringError.invalidString
+                    }
+                    guard let unicodeB = characters.character(at: index, offsetBy: 2) else {
+                        throw StringError.invalidString
+                    }
 
-            switch currentCharacter {
-            case percentCharacter:
-                let unicodeA = UnicodeScalar(encodedBytes[i + 1])
-                let unicodeB = UnicodeScalar(encodedBytes[i + 2])
+                    let hexString = String(unicodeA) + String(unicodeB)
 
-                let hexString = "\(unicodeA)\(unicodeB)"
+                    guard let unicodeScalar = UInt8(hexString, radix: 16) else {
+                        throw StringError.invalidString
+                    }
 
-                guard let character = Int(hexString, radix: 16) else {
-                    throw StringError(description: "Invalid string")
+                    encoded.append(unicodeScalar)
+                    characters.formIndex(&index, offsetBy: 3)
+
+                    if index == characters.endIndex || characters[index] != "%" {
+                        break
+                    }
                 }
 
-                decodedBytes.append(UInt8(character))
-                i += 3
+                decoded += try decode(encoded: encoded)
 
-            case plusCharacter:
-                decodedBytes.append(spaceCharacter)
-                i += 1
+            case "+":
+                decoded.append(" ")
+                characters.formIndex(after: &index)
 
             default:
-                decodedBytes.append(currentCharacter)
-                i += 1
+                decoded.append(character)
+                characters.formIndex(after: &index)
             }
         }
 
-        var string = ""
-        var decoder = UTF8()
-        var iterator = decodedBytes.makeIterator()
-        var finished = false
-
-        while !finished {
-            let decodingResult = decoder.decode(&iterator)
-            switch decodingResult {
-            case .scalarValue(let char): string.append(char)
-            case .emptyInput: finished = true
-            case .error:
-                throw StringError(description: "UTF-8 decoding failed")
-            }
-        }
-
-        self.init(string)
+        self = decoded
     }
 }
 
+func decode(encoded: [UInt8]) throws -> String {
+    var decoded = ""
+    var decoder = UTF8()
+    var iterator = encoded.makeIterator()
+    var finished = false
+
+    while !finished {
+        switch decoder.decode(&iterator) {
+        case .scalarValue(let char): decoded.unicodeScalars.append(char)
+        case .emptyInput: finished = true
+        case .error: throw StringError.utf8EncodingFailed
+        }
+    }
+
+    return decoded
+}
+
+extension UTF8 {
+    public static var whitespaceAndNewline: Set<UTF8.CodeUnit> = [32, 10, 9, 13]
+
+    public static var digits: Set<UTF8.CodeUnit> = [51, 49, 55, 53, 57, 50, 52, 48, 56, 54]
+
+    public static var uriQueryAllowed: Set<UTF8.CodeUnit> = [41, 106, 77, 49, 38, 74, 120, 68, 99, 102, 42, 58, 47, 59, 39, 67, 46, 50, 84, 81, 108, 95, 103, 90, 118, 78, 45, 63, 43, 116, 115, 51, 64, 110, 104, 61, 66, 73, 105, 98, 79, 107, 65, 101, 117, 40, 71, 83, 82, 87, 72, 76, 70, 88, 114, 122, 109, 44, 86, 80, 113, 111, 75, 121, 55, 100, 52, 48, 56, 33, 54, 85, 89, 97, 53, 112, 36, 57, 126, 69, 119]
+
+
+    public static var uriFragmentAllowed: Set<UTF8.CodeUnit> = [41, 106, 77, 49, 38, 74, 120, 68, 99, 102, 42, 58, 47, 59, 39, 67, 46, 50, 84, 81, 108, 95, 103, 90, 118, 78, 45, 63, 43, 116, 115, 51, 64, 110, 104, 61, 66, 73, 105, 98, 79, 107, 65, 101, 117, 40, 71, 83, 82, 87, 72, 76, 70, 88, 114, 122, 109, 44, 86, 80, 113, 111, 75, 121, 55, 100, 52, 48, 56, 33, 54, 85, 89, 97, 53, 112, 36, 57, 126, 69, 119]
+
+    public static var uriPathAllowed: Set<UTF8.CodeUnit> = [41, 106, 77, 49, 38, 74, 120, 68, 99, 102, 42, 58, 47, 39, 67, 46, 50, 84, 81, 108, 95, 103, 90, 118, 78, 45, 43, 116, 115, 51, 64, 110, 104, 73, 61, 66, 105, 98, 79, 107, 65, 101, 117, 40, 71, 83, 82, 87, 72, 76, 70, 88, 114, 122, 109, 44, 86, 80, 113, 111, 75, 121, 55, 100, 52, 48, 56, 33, 54, 85, 89, 97, 53, 112, 36, 57, 126, 69, 119]
+
+    public static var uriHostAllowed: Set<UTF8.CodeUnit> = [91, 41, 106, 93, 77, 49, 38, 74, 120, 68, 99, 102, 42, 58, 59, 39, 67, 46, 50, 84, 108, 95, 81, 103, 90, 118, 78, 45, 43, 116, 115, 51, 110, 104, 73, 61, 66, 105, 98, 79, 107, 65, 101, 117, 40, 71, 83, 82, 87, 72, 76, 70, 88, 114, 122, 109, 44, 86, 80, 113, 111, 75, 121, 55, 100, 52, 48, 56, 33, 54, 85, 89, 97, 53, 112, 36, 57, 126, 69, 119]
+
+    public static var uriPasswordAllowed: Set<UTF8.CodeUnit> = [41, 106, 77, 49, 38, 74, 120, 68, 99, 102, 42, 59, 39, 67, 46, 50, 84, 108, 95, 81, 103, 90, 118, 78, 45, 43, 116, 115, 51, 110, 104, 73, 61, 66, 105, 98, 79, 107, 65, 101, 117, 40, 71, 83, 82, 87, 72, 76, 70, 88, 114, 122, 109, 44, 86, 80, 113, 111, 75, 121, 55, 100, 52, 48, 56, 33, 54, 85, 89, 97, 53, 112, 36, 57, 126, 69, 119]
+
+    public static var uriUserAllowed: Set<UTF8.CodeUnit> = [41, 106, 77, 49, 38, 74, 120, 68, 99, 102, 42, 59, 39, 67, 46, 50, 84, 108, 95, 81, 103, 90, 118, 78, 45, 43, 116, 115, 51, 110, 104, 73, 61, 66, 105, 98, 79, 107, 65, 101, 117, 40, 71, 83, 82, 87, 72, 76, 70, 88, 114, 122, 109, 44, 86, 80, 113, 111, 75, 121, 55, 100, 52, 48, 56, 33, 54, 85, 89, 97, 53, 112, 36, 57, 126, 69, 119]
+}
+
 extension String {
-    public func percentEncoded(allowing allowed: CharacterSet) throws -> String {
+    public func percentEncoded(allowing allowed: Characters) -> String {
         var string = ""
-        let allowed = try allowed.utf8()
+        let allowed = allowed.utf8()
 
         for codeUnit in self.utf8 {
             if allowed.contains(codeUnit) {
-                string.append(UnicodeScalar(codeUnit))
+                string.append(String(UnicodeScalar(codeUnit)))
+            } else {
+                string.append("%")
+                string.append(codeUnit.hexadecimal())
+            }
+        }
+
+        return string
+    }
+
+    public func percentEncoded(allowing allowed: Set<UTF8.CodeUnit>) -> String {
+        var string = ""
+
+        for codeUnit in self.utf8 {
+            if allowed.contains(codeUnit) {
+                string.append(String(UnicodeScalar(codeUnit)))
             } else {
                 string.append("%")
                 string.append(codeUnit.hexadecimal())
@@ -419,8 +311,8 @@ extension String {
 }
 
 extension UInt8 {
-    public func hexadecimal(uppercased: Bool = true) -> String {
-        let hexadecimal =  String(self, radix: 16)
-        return (self < 16 ? "0" : "") + (uppercased ? hexadecimal.uppercased() : hexadecimal)
+    func hexadecimal() -> String {
+        let hexadecimal =  String(self, radix: 16, uppercase: true)
+        return (self < 16 ? "0" : "") + hexadecimal
     }
 }
